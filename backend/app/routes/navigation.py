@@ -27,6 +27,17 @@ def get_nearest_node(lat, lon):
 
 
 # -----------------------------
+# Helper: Calculate distance
+# -----------------------------
+def calculate_distance(G, path):
+    total = 0
+    for i in range(len(path) - 1):
+        edge = G[path[i]][path[i + 1]][0]
+        total += edge.get("length", 0)
+    return total
+
+
+# -----------------------------
 # Helper: Convert nodes → coords
 # -----------------------------
 def nodes_to_coords(path):
@@ -38,25 +49,48 @@ def nodes_to_coords(path):
 
 
 # -----------------------------
-# API Endpoint
+# API Endpoint (THIS IS /route)
 # -----------------------------
 @router.post("/route")
 def get_route(data: dict):
-    start_lat = data["start_lat"]
-    start_lon = data["start_lon"]
-    end_lat = data["end_lat"]
-    end_lon = data["end_lon"]
+    try:
+        start_lat = data["start_lat"]
+        start_lon = data["start_lon"]
+        end_lat = data["end_lat"]
+        end_lon = data["end_lon"]
+        if not all(k in data for k in ["start_lat", "start_lon", "end_lat", "end_lon"]):
+            return {"error": "Missing input"}
+        print(f"Start: {start_lat},{start_lon} → End: {end_lat},{end_lon}")
+        print(f"Distance: {dist}")
 
-    # Convert lat/lon → nearest graph nodes
-    source = get_nearest_node(start_lat, start_lon)
-    target = get_nearest_node(end_lat, end_lon)
+        # Convert lat/lon → nearest graph nodes
+        source = get_nearest_node(start_lat, start_lon)
+        target = get_nearest_node(end_lat, end_lon)
 
-    # Compute paths
-    sp = shortest_path(source, target)
-    safe = safest_path(source, target)
+        if source is None or target is None:
+            return {"error": "Invalid location"}
 
-    # Return coordinates for frontend
-    return {
-        "shortest_path": nodes_to_coords(sp),
-        "safest_path": nodes_to_coords(safe)
-    }
+        # Compute paths
+        sp = shortest_path(source, target)
+        safe = safest_path(source, target)
+
+        if not sp or not safe:
+            return {"error": "No route found"}
+
+        # Distance + time
+        dist = calculate_distance(G, sp)
+        time = dist / 1.4  # walking speed (m/s)
+
+        return {
+            "shortest": {
+                "path": nodes_to_coords(sp),
+                "distance_km": dist / 1000,
+                "time_min": time / 60
+            },
+            "safest": {
+                "path": nodes_to_coords(safe)
+            }
+        }
+
+    except Exception as e:
+        print("ERROR in /route:", e)
