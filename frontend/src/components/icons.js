@@ -8,9 +8,18 @@ export const destinationIcon = new L.Icon({
   iconAnchor: [19, 38],
 });
 
-export const startCircleStyle = {
-  radius: 8,
+export const darkStartStyle = {
+  radius: 10,
   color: "#00ffcc",
   fillColor: "#00ffcc",
-  fillOpacity: 1,
+  fillOpacity: 0.95,
+  weight: 3,
+};
+
+export const lightStartStyle = {
+  radius: 10,
+  color: "#0066ff",
+  fillColor: "#0066ff",
+  fillOpacity: 0.95,
+  weight: 3,
 };

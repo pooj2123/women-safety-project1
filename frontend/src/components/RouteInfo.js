@@ -1,40 +1,57 @@
 import React from "react";
 
-export default function RouteInfo({ routeData }) {
+export default function RouteInfo({
+  routeData,
+  darkMode,
+}) {
   return (
     <div
       style={{
         position: "absolute",
-        bottom: 20,
-        left: 20,
-        zIndex: 1000,
-        width: 280,
-        padding: 18,
-        borderRadius: 20,
-        backdropFilter: "blur(14px)",
-        background: "rgba(255,255,255,0.1)",
-        border: "1px solid rgba(255,255,255,0.2)",
-        color: "white",
+        bottom: 30,
+        left: 25,
+        zIndex: 1200,
+
+        width: 320,
+
+        padding: 20,
+
+        borderRadius: 24,
+
+        background: darkMode
+          ? "rgba(20,20,20,0.72)"
+          : "rgba(255,255,255,0.85)",
+
+        backdropFilter: "blur(16px)",
+
+        boxShadow:
+          "0 4px 18px rgba(0,0,0,0.15)",
+
+        color: darkMode ? "white" : "#111",
       }}
     >
-      <h3>Route Information</h3>
+      <h3
+        style={{
+          marginBottom: 14,
+          fontSize: 20,
+        }}
+      >
+        Route Information
+      </h3>
 
       <p>
-        Distance:
-        {" "}
+        <strong>Distance:</strong>{" "}
         {routeData.shortest.distance_km} km
       </p>
 
       <p>
-        Estimated Time:
-        {" "}
+        <strong>Estimated Time:</strong>{" "}
         {routeData.shortest.time_min} mins
       </p>
 
       <p>
-        Safety Score:
-        {" "}
-        🟢 {routeData.safety_score}%
+        <strong>Safety Score:</strong>{" "}
+        {routeData.safety_score}%
       </p>
     </div>
   );

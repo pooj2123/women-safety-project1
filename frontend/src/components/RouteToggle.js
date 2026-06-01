@@ -3,26 +3,57 @@ import React from "react";
 export default function RouteToggle({
   routeType,
   setRouteType,
+  darkMode,
 }) {
   return (
     <div
       style={{
         position: "absolute",
-        top: 20,
+        top: 25,
         right: 20,
-        zIndex: 1000,
+        zIndex: 1200,
+
         display: "flex",
         gap: 10,
+
+        padding: 10,
+
+        borderRadius: 18,
+
+        background: darkMode
+          ? "rgba(20,20,20,0.7)"
+          : "rgba(255,255,255,0.85)",
+
+        backdropFilter: "blur(14px)",
+
+        boxShadow:
+          "0 4px 18px rgba(0,0,0,0.15)",
       }}
     >
       <button
         onClick={() => setRouteType("shortest")}
         style={{
-          ...buttonStyle,
+          padding: "10px 16px",
+
+          borderRadius: 12,
+
+          border: "none",
+
+          cursor: "pointer",
+
           background:
             routeType === "shortest"
-              ? "#4da3ff"
-              : "#1f1f1f",
+              ? "#0066ff"
+              : "transparent",
+
+          color:
+            routeType === "shortest"
+              ? "white"
+              : darkMode
+              ? "white"
+              : "#111",
+
+          fontWeight: "600",
         }}
       >
         Shortest
@@ -31,11 +62,27 @@ export default function RouteToggle({
       <button
         onClick={() => setRouteType("safest")}
         style={{
-          ...buttonStyle,
+          padding: "10px 16px",
+
+          borderRadius: 12,
+
+          border: "none",
+
+          cursor: "pointer",
+
           background:
             routeType === "safest"
               ? "#00c896"
-              : "#1f1f1f",
+              : "transparent",
+
+          color:
+            routeType === "safest"
+              ? "#111"
+              : darkMode
+              ? "white"
+              : "#111",
+
+          fontWeight: "600",
         }}
       >
         Safest
@@ -43,12 +90,3 @@ export default function RouteToggle({
     </div>
   );
 }
-
-const buttonStyle = {
-  padding: "10px 18px",
-  borderRadius: "12px",
-  border: "none",
-  color: "white",
-  cursor: "pointer",
-  fontWeight: "bold",
-};

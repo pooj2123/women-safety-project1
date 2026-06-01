@@ -9,7 +9,11 @@ import {
   CircleMarker,
 } from "react-leaflet";
 
+
+
 import "leaflet/dist/leaflet.css";
+
+import "../styles/map.css";
 
 import SearchBox from "./SearchBox";
 import RouteToggle from "./RouteToggle";
@@ -18,19 +22,19 @@ import LoadingOverlay from "./LoadingOverlay";
 
 import {
   destinationIcon,
-  startCircleStyle,
+  darkStartStyle,
+  lightStartStyle,
 } from "./icons";
 
 const center = [17.385, 78.4867];
 
 export default function MapView() {
   const [routeType, setRouteType] = useState("safest");
+
   const [loading, setLoading] = useState(false);
 
   const [darkMode, setDarkMode] = useState(true);
 
-  // TEMPORARY DUMMY DATA
-  // Replace later with backend API response
   const [routeData] = useState({
     shortest: {
       path: [
@@ -38,6 +42,7 @@ export default function MapView() {
         [17.39, 78.49],
         [17.398, 78.495],
       ],
+
       distance_km: 5.2,
       time_min: 12,
     },
@@ -66,22 +71,25 @@ export default function MapView() {
         overflow: "hidden",
       }}
     >
-      {/* Loading Overlay */}
       {loading && <LoadingOverlay />}
 
-      {/* Search Box */}
-      <SearchBox setLoading={setLoading} />
-
-      {/* Route Toggle */}
-      <RouteToggle
-        routeType={routeType}
-        setRouteType={setRouteType}
+      <SearchBox
+        setLoading={setLoading}
+        darkMode={darkMode}
       />
 
-      {/* Route Info */}
-      <RouteInfo routeData={routeData} />
+      <RouteToggle
+  routeType={routeType}
+  setRouteType={setRouteType}
+  darkMode={darkMode}
+/>
 
-      {/* Dark/Light Toggle */}
+      <RouteInfo
+  routeData={routeData}
+  darkMode={darkMode}
+/>
+
+      {/* THEME TOGGLE */}
       <button
         onClick={() => setDarkMode(!darkMode)}
         style={{
@@ -99,7 +107,7 @@ export default function MapView() {
 
           background: darkMode
             ? "rgba(20,20,20,0.85)"
-            : "rgba(255,255,255,0.85)",
+            : "rgba(255,255,255,0.9)",
 
           color: darkMode ? "#fff" : "#111",
 
@@ -114,7 +122,6 @@ export default function MapView() {
         {darkMode ? "☀️ Light" : "🌙 Dark"}
       </button>
 
-      {/* MAP */}
       <MapContainer
         center={center}
         zoom={13}
@@ -135,11 +142,15 @@ export default function MapView() {
 
         {/* START DOT */}
         <CircleMarker
-          center={center}
-          pathOptions={startCircleStyle}
-        >
-          <Popup>Start Location</Popup>
-        </CircleMarker>
+  center={center}
+  pathOptions={
+    darkMode
+      ? darkStartStyle
+      : lightStartStyle
+  }
+>
+  <Popup>Start Location</Popup>
+</CircleMarker>
 
         {/* DESTINATION MARKER */}
         <Marker
@@ -155,9 +166,11 @@ export default function MapView() {
             <Polyline
               positions={shortestPath}
               pathOptions={{
-                color: "#4da3ff",
-                weight: 5,
-                opacity: 0.75,
+                color: darkMode? 
+                "#00ff99"
+                  : "#0066ff",
+                weight: 6,
+                opacity: 0.95,
               }}
             />
           )}
@@ -168,9 +181,12 @@ export default function MapView() {
             <Polyline
               positions={safestPath}
               pathOptions={{
-                color: "#00ff99",
-                weight: 6,
-                opacity: 0.95,
+                color: darkMode
+                  ? "#00ff99"
+                  : "#0055ff",
+
+                weight: 7,
+                opacity: 1,
               }}
             />
           )}
