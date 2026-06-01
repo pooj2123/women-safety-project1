@@ -12,3 +12,8 @@ node_modules/
 
 # env
 venv/
+
+.DS_Store
+venv/
+node_modules/
+__pycache__/

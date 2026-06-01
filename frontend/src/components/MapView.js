@@ -1,127 +1,180 @@
 import React, { useState } from "react";
+
 import {
   MapContainer,
   TileLayer,
-  Marker,
   Polyline,
-  useMapEvents,
+  Marker,
+  Popup,
+  CircleMarker,
 } from "react-leaflet";
+
 import "leaflet/dist/leaflet.css";
-import { searchLocation, getRoute } from "../services/api";
 
-const MapView = () => {
-  const [startText, setStartText] = useState("");
-  const [endText, setEndText] = useState("");
+import SearchBox from "./SearchBox";
+import RouteToggle from "./RouteToggle";
+import RouteInfo from "./RouteInfo";
+import LoadingOverlay from "./LoadingOverlay";
 
-  const [startPoint, setStartPoint] = useState(null);
-  const [endPoint, setEndPoint] = useState(null);
+import {
+  destinationIcon,
+  startCircleStyle,
+} from "./icons";
 
-  const [shortestRoute, setShortestRoute] = useState([]);
-  const [safestRoute, setSafestRoute] = useState([]);
+const center = [17.385, 78.4867];
 
-  // 📍 Handle map click (optional manual selection)
-  const MapClickHandler = () => {
-    useMapEvents({
-      click(e) {
-        if (!startPoint) {
-          setStartPoint([e.latlng.lat, e.latlng.lng]);
-        } else {
-          setEndPoint([e.latlng.lat, e.latlng.lng]);
-        }
-      },
-    });
-    return null;
-  };
+export default function MapView() {
+  const [routeType, setRouteType] = useState("safest");
+  const [loading, setLoading] = useState(false);
 
-  // 🔍 Handle search (text → coords → route)
-  const handleSearch = async () => {
-  try {
-    const start = await searchLocation(startInput);
-    const end = await searchLocation(endInput);
+  const [darkMode, setDarkMode] = useState(true);
 
-    console.log("START:", start);
-    console.log("END:", end);
+  // TEMPORARY DUMMY DATA
+  // Replace later with backend API response
+  const [routeData] = useState({
+    shortest: {
+      path: [
+        [17.385, 78.4867],
+        [17.39, 78.49],
+        [17.398, 78.495],
+      ],
+      distance_km: 5.2,
+      time_min: 12,
+    },
 
-    if (!start || !end) {
-      alert("Invalid locations");
-      return;
-    }
+    safest: {
+      path: [
+        [17.385, 78.4867],
+        [17.387, 78.482],
+        [17.392, 78.478],
+        [17.398, 78.495],
+      ],
+    },
 
-    const routeData = await getRoute(start, end);
-    console.log("ROUTE:", routeData);
+    safety_score: 82,
+  });
 
-    setRoute(routeData);
-
-  } catch (err) {
-    console.error("ERROR:", err);
-    alert("Something went wrong");
-  }
-};
-
-  // 🔄 Reset everything
-  const handleReset = () => {
-    setStartPoint(null);
-    setEndPoint(null);
-    setShortestRoute([]);
-    setSafestRoute([]);
-    setStartText("");
-    setEndText("");
-  };
+  const shortestPath = routeData.shortest.path || [];
+  const safestPath = routeData.safest.path || [];
 
   return (
-    <div>
-      {/* 🔍 Search UI */}
-      <div style={{ padding: "10px" }}>
-        <input
-          placeholder="Start location"
-          value={startText}
-          onChange={(e) => setStartText(e.target.value)}
-        />
+    <div
+      style={{
+        height: "100vh",
+        width: "100%",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Loading Overlay */}
+      {loading && <LoadingOverlay />}
 
-        <input
-          placeholder="End location"
-          value={endText}
-          onChange={(e) => setEndText(e.target.value)}
-          style={{ marginLeft: "10px" }}
-        />
+      {/* Search Box */}
+      <SearchBox setLoading={setLoading} />
 
-        <button onClick={handleSearch} style={{ marginLeft: "10px" }}>
-          Search
-        </button>
+      {/* Route Toggle */}
+      <RouteToggle
+        routeType={routeType}
+        setRouteType={setRouteType}
+      />
 
-        <button onClick={handleReset} style={{ marginLeft: "10px" }}>
-          Reset
-        </button>
-      </div>
+      {/* Route Info */}
+      <RouteInfo routeData={routeData} />
 
-      {/* 🗺️ Map */}
-      <MapContainer
-        center={[17.385, 78.486]} // Hyderabad default
-        zoom={13}
-        style={{ height: "90vh", width: "100%" }}
+      {/* Dark/Light Toggle */}
+      <button
+        onClick={() => setDarkMode(!darkMode)}
+        style={{
+          position: "absolute",
+          top: 90,
+          right: 20,
+          zIndex: 1200,
+
+          padding: "10px 16px",
+
+          borderRadius: "14px",
+          border: "none",
+
+          cursor: "pointer",
+
+          background: darkMode
+            ? "rgba(20,20,20,0.85)"
+            : "rgba(255,255,255,0.85)",
+
+          color: darkMode ? "#fff" : "#111",
+
+          backdropFilter: "blur(10px)",
+
+          boxShadow:
+            "0 4px 18px rgba(0,0,0,0.25)",
+
+          fontWeight: "bold",
+        }}
       >
+        {darkMode ? "☀️ Light" : "🌙 Dark"}
+      </button>
+
+      {/* MAP */}
+      <MapContainer
+        center={center}
+        zoom={13}
+        style={{
+          height: "100%",
+          width: "100%",
+        }}
+      >
+        {/* MAP THEME */}
         <TileLayer
-          attribution="&copy; OpenStreetMap contributors"
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; OpenStreetMap contributors'
+          url={
+            darkMode
+              ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          }
         />
 
-        <MapClickHandler />
+        {/* START DOT */}
+        <CircleMarker
+          center={center}
+          pathOptions={startCircleStyle}
+        >
+          <Popup>Start Location</Popup>
+        </CircleMarker>
 
-        {/* 📍 Markers */}
-        {startPoint && <Marker position={startPoint} />}
-        {endPoint && <Marker position={endPoint} />}
+        {/* DESTINATION MARKER */}
+        <Marker
+          position={[17.398, 78.495]}
+          icon={destinationIcon}
+        >
+          <Popup>Destination</Popup>
+        </Marker>
 
-        {/* 🛣️ Routes */}
-        {shortestRoute.length > 0 && (
-          <Polyline positions={shortestRoute} color="blue" />
-        )}
+        {/* SHORTEST ROUTE */}
+        {routeType === "shortest" &&
+          shortestPath.length > 0 && (
+            <Polyline
+              positions={shortestPath}
+              pathOptions={{
+                color: "#4da3ff",
+                weight: 5,
+                opacity: 0.75,
+              }}
+            />
+          )}
 
-        {safestRoute.length > 0 && (
-          <Polyline positions={safestRoute} color="green" />
-        )}
+        {/* SAFEST ROUTE */}
+        {routeType === "safest" &&
+          safestPath.length > 0 && (
+            <Polyline
+              positions={safestPath}
+              pathOptions={{
+                color: "#00ff99",
+                weight: 6,
+                opacity: 0.95,
+              }}
+            />
+          )}
       </MapContainer>
     </div>
   );
-};
-
-export default MapView;
+}
