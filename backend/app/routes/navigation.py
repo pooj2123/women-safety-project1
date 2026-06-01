@@ -1,29 +1,29 @@
 from fastapi import APIRouter
 from app.services.routing import shortest_path, safest_path, G
+import osmnx as ox
 
 router = APIRouter()
 
 # -----------------------------
-# Helper: Find nearest node
+# ✅ Correct nearest node (FIXED)
 # -----------------------------
 def get_nearest_node(lat, lon):
-    closest_node = None
-    min_dist = float("inf")
+    try:
+        return ox.distance.nearest_nodes(G, lon, lat)
+    except Exception as e:
+        print("Nearest node error:", e)
+        return None
 
-    for node, data in G.nodes(data=True):
-        node_lat = data.get("y")
-        node_lon = data.get("x")
 
-        if node_lat is None or node_lon is None:
-            continue
-
-        dist = (lat - node_lat) ** 2 + (lon - node_lon) ** 2
-
-        if dist < min_dist:
-            min_dist = dist
-            closest_node = node
-
-    return closest_node
+# -----------------------------
+# Helper: Calculate distance
+# -----------------------------
+def calculate_distance(G, path):
+    total = 0
+    for i in range(len(path) - 1):
+        edge = G[path[i]][path[i + 1]][0]
+        total += edge.get("length", 0)
+    return total
 
 
 # -----------------------------
@@ -42,21 +42,36 @@ def nodes_to_coords(path):
 # -----------------------------
 @router.post("/route")
 def get_route(data: dict):
-    start_lat = data["start_lat"]
-    start_lon = data["start_lon"]
-    end_lat = data["end_lat"]
-    end_lon = data["end_lon"]
+    try:
+        start_lat = data["start_lat"]
+        start_lon = data["start_lon"]
+        end_lat = data["end_lat"]
+        end_lon = data["end_lon"]
 
-    # Convert lat/lon → nearest graph nodes
-    source = get_nearest_node(start_lat, start_lon)
-    target = get_nearest_node(end_lat, end_lon)
+        source = get_nearest_node(start_lat, start_lon)
+        target = get_nearest_node(end_lat, end_lon)
 
-    # Compute paths
-    sp = shortest_path(source, target)
-    safe = safest_path(source, target)
+        if source is None or target is None:
+            return {"error": "Invalid location"}
 
-    # Return coordinates for frontend
-    return {
-        "shortest_path": nodes_to_coords(sp),
-        "safest_path": nodes_to_coords(safe)
+        sp = shortest_path(source, target)
+        safe = safest_path(source, target)
+
+        dist = calculate_distance(G, sp)
+        time = dist / 1.4
+        
+        return {
+        "shortest": {
+            "path": nodes_to_coords(sp),
+            "distance_km": dist / 1000,
+            "time_min": time / 60
+        },
+        "safest": {
+            "path": nodes_to_coords(safe)
+        }
     }
+        
+
+    except Exception as e:
+        print("ERROR:", e)
+        return {"error": "Something went wrong"}

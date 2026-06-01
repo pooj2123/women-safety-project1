@@ -35,25 +35,28 @@ const MapView = () => {
 
   // 🔍 Handle search (text → coords → route)
   const handleSearch = async () => {
-    const start = await searchLocation(startText);
-    const end = await searchLocation(endText);
+  try {
+    const start = await searchLocation(startInput);
+    const end = await searchLocation(endInput);
+
+    console.log("START:", start);
+    console.log("END:", end);
 
     if (!start || !end) {
-      alert("Invalid location");
+      alert("Invalid locations");
       return;
     }
 
-    const result = await getRoute(
-      [start.lat, start.lon],
-      [end.lat, end.lon]
-    );
+    const routeData = await getRoute(start, end);
+    console.log("ROUTE:", routeData);
 
-    setStartPoint([start.lat, start.lon]);
-    setEndPoint([end.lat, end.lon]);
+    setRoute(routeData);
 
-    setShortestRoute(result.shortest_path || []);
-    setSafestRoute(result.safest_path || []);
-  };
+  } catch (err) {
+    console.error("ERROR:", err);
+    alert("Something went wrong");
+  }
+};
 
   // 🔄 Reset everything
   const handleReset = () => {

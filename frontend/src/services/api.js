@@ -1,31 +1,40 @@
+const BASE_URL = "http://127.0.0.1:8000";
+
 export const searchLocation = async (query) => {
-  const res = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&q=${query}`
-  );
+  try {
+    const res = await fetch(`${BASE_URL}/search?q=${query}`);
+    const data = await res.json();
 
-  const data = await res.json();
+    if (data.error) return null;
 
-  if (!data.length) return null;
-
-  return {
-    lat: parseFloat(data[0].lat),
-    lon: parseFloat(data[0].lon),
-  };
+    return {
+      lat: data.lat,
+      lon: data.lon,
+    };
+  } catch (err) {
+    console.error("Search error:", err);
+    return null;
+  }
 };
 
 export const getRoute = async (start, end) => {
-  const res = await fetch("http://127.0.0.1:8000/route", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      start_lat: start[0],
-      start_lon: start[1],
-      end_lat: end[0],
-      end_lon: end[1],
-    }),
-  });
+  try {
+    const res = await fetch(`${BASE_URL}/route`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        start_lat: start.lat,
+        start_lon: start.lon,
+        end_lat: end.lat,
+        end_lon: end.lon,
+      }),
+    });
 
-  return await res.json();
+    return await res.json();
+  } catch (err) {
+    console.error("Route error:", err);
+    return null;
+  }
 };
