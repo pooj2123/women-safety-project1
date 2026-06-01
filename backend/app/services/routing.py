@@ -3,7 +3,7 @@ import networkx as nx
 
 print("🚀 ROUTING ENGINE STARTED")
 
-with open("app/data/graph_with_safety.pkl", "rb") as f:
+with open("app/data/processed_graph.pkl", "rb") as f:
     G = pickle.load(f)
 
 print("Graph loaded:", len(G.nodes), "nodes")
