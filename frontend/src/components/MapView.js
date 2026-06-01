@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import {
   MapContainer,
@@ -7,9 +7,8 @@ import {
   Marker,
   Popup,
   CircleMarker,
+  useMap,
 } from "react-leaflet";
-
-
 
 import "leaflet/dist/leaflet.css";
 
@@ -28,39 +27,135 @@ import {
 
 const center = [17.385, 78.4867];
 
+// -----------------------------
+// AUTO FIT ROUTE
+// -----------------------------
+function FitBounds({ path }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (path && path.length > 0) {
+      map.fitBounds(path, {
+        padding: [50, 50],
+      });
+    }
+  }, [path, map]);
+
+  return null;
+}
+
+// -----------------------------
+// FLY TO CURRENT LOCATION
+// -----------------------------
+function FlyToLocation({ position }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (position) {
+      map.flyTo(position, 15, {
+        duration: 2,
+      });
+    }
+  }, [position, map]);
+
+  return null;
+}
+
 export default function MapView() {
-  const [routeType, setRouteType] = useState("safest");
+  const [routeType, setRouteType] =
+    useState("safest");
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] =
+    useState(true);
 
-  const [routeData] = useState({
-    shortest: {
-      path: [
-        [17.385, 78.4867],
-        [17.39, 78.49],
-        [17.398, 78.495],
-      ],
+  const [start, setStart] =
+    useState(center);
 
-      distance_km: 5.2,
-      time_min: 12,
-    },
+  const [destination, setDestination] =
+    useState([17.398, 78.495]);
 
-    safest: {
-      path: [
-        [17.385, 78.4867],
-        [17.387, 78.482],
-        [17.392, 78.478],
-        [17.398, 78.495],
-      ],
-    },
+  const [routeData, setRouteData] =
+    useState({
+      shortest: {
+        path: [
+          [17.385, 78.4867],
+          [17.39, 78.49],
+          [17.398, 78.495],
+        ],
 
-    safety_score: 82,
-  });
+        distance_km: 5.2,
+        time_min: 12,
+      },
 
-  const shortestPath = routeData.shortest.path || [];
-  const safestPath = routeData.safest.path || [];
+      safest: {
+        path: [
+          [17.385, 78.4867],
+          [17.387, 78.482],
+          [17.392, 78.478],
+          [17.398, 78.495],
+        ],
+      },
+
+      safety_score: 82,
+    });
+
+  const shortestPath =
+    routeData?.shortest?.path || [];
+
+  const safestPath =
+    routeData?.safest?.path || [];
+
+  const activePath =
+    routeType === "shortest"
+      ? shortestPath
+      : safestPath;
+
+  // -----------------------------
+  // CURRENT LOCATION
+  // -----------------------------
+  const useCurrentLocation = () => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat =
+          position.coords.latitude;
+
+        const lon =
+          position.coords.longitude;
+
+        setStart([lat, lon]);
+      },
+
+      (err) => {
+        console.log(err);
+
+        alert("Location access denied");
+      }
+    );
+  };
+
+  // -----------------------------
+  // CLEAR ROUTE
+  // -----------------------------
+  const clearRoute = () => {
+    setRouteData({
+      shortest: {
+        path: [],
+        distance_km: 0,
+        time_min: 0,
+      },
+
+      safest: {
+        path: [],
+      },
+
+      safety_score: 0,
+    });
+
+    setDestination(null);
+  };
 
   return (
     <div
@@ -76,22 +171,61 @@ export default function MapView() {
       <SearchBox
         setLoading={setLoading}
         darkMode={darkMode}
+        setRouteData={setRouteData}
+        setStart={setStart}
+        setDestination={setDestination}
       />
 
       <RouteToggle
-  routeType={routeType}
-  setRouteType={setRouteType}
-  darkMode={darkMode}
-/>
+        routeType={routeType}
+        setRouteType={setRouteType}
+        darkMode={darkMode}
+      />
 
       <RouteInfo
-  routeData={routeData}
-  darkMode={darkMode}
-/>
+        routeData={routeData}
+        darkMode={darkMode}
+      />
+
+      {/* SAFETY SCORE */}
+      <div
+        style={{
+          position: "absolute",
+          top: 20,
+          right: 20,
+          zIndex: 1200,
+
+          padding: "14px 18px",
+
+          borderRadius: "16px",
+
+          background: darkMode
+            ? "rgba(20,20,20,0.85)"
+            : "rgba(255,255,255,0.92)",
+
+          color: darkMode
+            ? "#fff"
+            : "#111",
+
+          backdropFilter: "blur(12px)",
+
+          boxShadow:
+            "0 4px 18px rgba(0,0,0,0.25)",
+
+          fontWeight: "bold",
+
+          fontSize: "18px",
+        }}
+      >
+        🛡️ Safety Score:{" "}
+        {routeData?.safety_score || 0}%
+      </div>
 
       {/* THEME TOGGLE */}
       <button
-        onClick={() => setDarkMode(!darkMode)}
+        onClick={() =>
+          setDarkMode(!darkMode)
+        }
         style={{
           position: "absolute",
           top: 90,
@@ -109,7 +243,9 @@ export default function MapView() {
             ? "rgba(20,20,20,0.85)"
             : "rgba(255,255,255,0.9)",
 
-          color: darkMode ? "#fff" : "#111",
+          color: darkMode
+            ? "#fff"
+            : "#111",
 
           backdropFilter: "blur(10px)",
 
@@ -119,7 +255,75 @@ export default function MapView() {
           fontWeight: "bold",
         }}
       >
-        {darkMode ? "☀️ Light" : "🌙 Dark"}
+        {darkMode
+          ? "☀️ Light"
+          : "🌙 Dark"}
+      </button>
+
+      {/* CURRENT LOCATION BUTTON */}
+      <button
+        onClick={useCurrentLocation}
+        style={{
+          position: "absolute",
+          top: 150,
+          right: 20,
+          zIndex: 1200,
+
+          padding: "10px 16px",
+
+          borderRadius: "14px",
+          border: "none",
+
+          cursor: "pointer",
+
+          background: darkMode
+            ? "rgba(20,20,20,0.85)"
+            : "rgba(255,255,255,0.9)",
+
+          color: darkMode
+            ? "#fff"
+            : "#111",
+
+          backdropFilter: "blur(10px)",
+
+          boxShadow:
+            "0 4px 18px rgba(0,0,0,0.25)",
+
+          fontWeight: "bold",
+        }}
+      >
+        📍 My Location
+      </button>
+
+      {/* CLEAR ROUTE BUTTON */}
+      <button
+        onClick={clearRoute}
+        style={{
+          position: "absolute",
+          top: 210,
+          right: 20,
+          zIndex: 1200,
+
+          padding: "10px 16px",
+
+          borderRadius: "14px",
+          border: "none",
+
+          cursor: "pointer",
+
+          background: "#ff4d4f",
+
+          color: "#fff",
+
+          backdropFilter: "blur(10px)",
+
+          boxShadow:
+            "0 4px 18px rgba(0,0,0,0.25)",
+
+          fontWeight: "bold",
+        }}
+      >
+        ❌ Clear Route
       </button>
 
       <MapContainer
@@ -130,6 +334,12 @@ export default function MapView() {
           width: "100%",
         }}
       >
+        {/* AUTO FIT ROUTE */}
+        <FitBounds path={activePath} />
+
+        {/* FLY TO CURRENT LOCATION */}
+        <FlyToLocation position={start} />
+
         {/* MAP THEME */}
         <TileLayer
           attribution='&copy; OpenStreetMap contributors'
@@ -141,24 +351,30 @@ export default function MapView() {
         />
 
         {/* START DOT */}
-        <CircleMarker
-  center={center}
-  pathOptions={
-    darkMode
-      ? darkStartStyle
-      : lightStartStyle
-  }
->
-  <Popup>Start Location</Popup>
-</CircleMarker>
+        {start && (
+          <CircleMarker
+            center={start}
+            pathOptions={
+              darkMode
+                ? darkStartStyle
+                : lightStartStyle
+            }
+          >
+            <Popup>Start Location</Popup>
+          </CircleMarker>
+        )}
 
         {/* DESTINATION MARKER */}
-        <Marker
-          position={[17.398, 78.495]}
-          icon={destinationIcon}
-        >
-          <Popup>Destination</Popup>
-        </Marker>
+        {destination && (
+          <Marker
+            position={destination}
+            icon={destinationIcon}
+          >
+            <Popup>
+              Destination
+            </Popup>
+          </Marker>
+        )}
 
         {/* SHORTEST ROUTE */}
         {routeType === "shortest" &&
@@ -166,9 +382,10 @@ export default function MapView() {
             <Polyline
               positions={shortestPath}
               pathOptions={{
-                color: darkMode? 
-                "#00ff99"
+                color: darkMode
+                  ? "#00ff99"
                   : "#0066ff",
+
                 weight: 6,
                 opacity: 0.95,
               }}

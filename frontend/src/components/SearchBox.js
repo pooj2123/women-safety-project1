@@ -1,50 +1,190 @@
 import React, { useState } from "react";
 
-export default function SearchBox({ darkMode }) {
-  const [start, setStart] = useState("");
-  const [end, setEnd] = useState("");
+import axios from "axios";
+
+import toast from "react-hot-toast";
+
+export default function SearchBox({
+
+  setLoading,
+  darkMode,
+
+  setRouteData,
+  setStart,
+  setDestination,
+
+}) {
+
+  const [startPlace, setStartPlace] =
+    useState("");
+
+  const [destinationPlace, setDestinationPlace] =
+    useState("");
+
+  // -----------------------------
+  // GEOCODE LOCATION
+  // -----------------------------
+  const geocodePlace = async (place) => {
+
+    try {
+
+      const response = await axios.get(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${place}`
+      );
+
+      if (response.data.length === 0) {
+        return null;
+      }
+
+      return [
+        parseFloat(response.data[0].lat),
+        parseFloat(response.data[0].lon),
+      ];
+
+    } catch (err) {
+
+      console.log(err);
+      return null;
+    }
+  };
+
+  // -----------------------------
+  // HANDLE SEARCH
+  // -----------------------------
+  const handleSearch = async () => {
+
+    if (!startPlace || !destinationPlace) {
+
+      toast.error("Enter both locations");
+      return;
+    }
+
+    try {
+
+      setLoading(true);
+
+      toast.loading(
+        "Generating safest route...",
+        {
+          id: "route",
+        }
+      );
+
+      // -----------------------------
+      // GEOCODE
+      // -----------------------------
+      const startCoords =
+        await geocodePlace(startPlace);
+
+      const destinationCoords =
+        await geocodePlace(destinationPlace);
+
+      if (!startCoords || !destinationCoords) {
+
+        toast.error("Location not found", {
+          id: "route",
+        });
+
+        setLoading(false);
+        return;
+      }
+
+      // -----------------------------
+      // UPDATE MAP MARKERS
+      // -----------------------------
+      setStart(startCoords);
+
+      setDestination(destinationCoords);
+
+      // -----------------------------
+      // BACKEND API
+      // -----------------------------
+      const response = await axios.post(
+        "http://127.0.0.1:8000/route",
+        {
+          start_lat: startCoords[0],
+          start_lon: startCoords[1],
+
+          end_lat: destinationCoords[0],
+          end_lon: destinationCoords[1],
+        }
+      );
+
+      console.log(response.data);
+
+      // -----------------------------
+      // UPDATE ROUTE
+      // -----------------------------
+      setRouteData(response.data);
+
+      toast.success(
+        "Safe route generated!",
+        {
+          id: "route",
+        }
+      );
+
+    } catch (err) {
+
+      console.log(err);
+
+      toast.error(
+        "Failed to fetch route",
+        {
+          id: "route",
+        }
+      );
+
+    } finally {
+
+      setLoading(false);
+    }
+  };
 
   return (
+
     <div
       style={{
         position: "absolute",
-        top: 25,
-        left: 25,
-        zIndex: 1000,
 
-        width: 370,
-        padding: 28,
+        top: 20,
+        left: 20,
 
-        borderRadius: "30px",
+        zIndex: 1200,
+
+        width: "320px",
+
+        padding: "18px",
+
+        borderRadius: "20px",
 
         background: darkMode
-          ? "rgba(15,15,20,0.58)"
-          : "rgba(235,240,255,0.55)",
+          ? "rgba(20,20,20,0.82)"
+          : "rgba(255,255,255,0.92)",
 
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
-
-        border: darkMode
-          ? "1px solid rgba(255,255,255,0.12)"
-          : "1px solid rgba(0,0,0,0.08)",
+        backdropFilter: "blur(14px)",
 
         boxShadow:
-          "0 8px 32px rgba(0,0,0,0.22)",
+          "0 8px 32px rgba(0,0,0,0.25)",
 
-        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+
+        gap: "12px",
       }}
     >
+
       <h2
         style={{
-          color: darkMode ? "#ffffff" : "#111111",
+          margin: 0,
 
-          marginBottom: 20,
+          color: darkMode
+            ? "#fff"
+            : "#111",
 
-          fontSize: "24px",
+          fontSize: "20px",
 
           fontWeight: "700",
-
-          letterSpacing: "0.3px",
         }}
       >
         Women Safety Navigation
@@ -53,94 +193,100 @@ export default function SearchBox({ darkMode }) {
       {/* START INPUT */}
       <input
         type="text"
-        placeholder="Start location"
-        value={start}
-        onChange={(e) => setStart(e.target.value)}
-        style={{
-          ...inputStyle,
 
-          color: darkMode ? "#ffffff" : "#111111",
+        placeholder="Enter source location"
+
+        value={startPlace}
+
+        onChange={(e) =>
+          setStartPlace(e.target.value)
+        }
+
+        style={{
+          padding: "12px",
+
+          borderRadius: "12px",
+
+          border: "none",
+
+          outline: "none",
 
           background: darkMode
             ? "rgba(255,255,255,0.08)"
-            : "rgba(255,255,255,0.78)",
+            : "#f3f3f3",
 
-          border: darkMode
-            ? "1px solid rgba(255,255,255,0.08)"
-            : "1px solid rgba(0,0,0,0.08)",
+          color: darkMode
+            ? "#fff"
+            : "#111",
+
+          fontSize: "15px",
         }}
       />
 
       {/* DESTINATION INPUT */}
       <input
         type="text"
-        placeholder="Destination"
-        value={end}
-        onChange={(e) => setEnd(e.target.value)}
-        style={{
-          ...inputStyle,
 
-          color: darkMode ? "#ffffff" : "#111111",
+        placeholder="Enter destination"
+
+        value={destinationPlace}
+
+        onChange={(e) =>
+          setDestinationPlace(
+            e.target.value
+          )
+        }
+
+        style={{
+          padding: "12px",
+
+          borderRadius: "12px",
+
+          border: "none",
+
+          outline: "none",
 
           background: darkMode
             ? "rgba(255,255,255,0.08)"
-            : "rgba(255,255,255,0.78)",
+            : "#f3f3f3",
 
-          border: darkMode
-            ? "1px solid rgba(255,255,255,0.08)"
-            : "1px solid rgba(0,0,0,0.08)",
+          color: darkMode
+            ? "#fff"
+            : "#111",
+
+          fontSize: "15px",
         }}
       />
 
-      <button style={buttonStyle}>
-        Find Safe Route
+      {/* SEARCH BUTTON */}
+      <button
+        onClick={handleSearch}
+
+        style={{
+          padding: "12px",
+
+          borderRadius: "14px",
+
+          border: "none",
+
+          cursor: "pointer",
+
+          fontWeight: "bold",
+
+          fontSize: "15px",
+
+          background:
+            "linear-gradient(135deg,#00c853,#00e676)",
+
+          color: "#fff",
+
+          boxShadow:
+            "0 4px 14px rgba(0,0,0,0.2)",
+        }}
+      >
+        🚀 Find Safe Route
       </button>
+
     </div>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-
-  padding: "15px 18px",
-
-  marginBottom: "16px",
-
-  borderRadius: "16px",
-
-  outline: "none",
-
-  fontSize: "15px",
-
-  boxSizing: "border-box",
-
-  backdropFilter: "blur(12px)",
-
-  transition: "0.25s ease",
-};
-
-const buttonStyle = {
-  width: "100%",
-
-  padding: "15px",
-
-  borderRadius: "16px",
-
-  border: "none",
-
-  background:
-    "linear-gradient(135deg, #00c896, #00ffcc)",
-
-  color: "#111",
-
-  fontWeight: "700",
-
-  cursor: "pointer",
-
-  fontSize: "15px",
-
-  boxShadow:
-    "0 4px 18px rgba(0,255,200,0.28)",
-
-  transition: "0.25s ease",
-};
