@@ -49,6 +49,18 @@ export default function SearchBox({
   };
 
   // -----------------------------
+// SWAP LOCATIONS
+// -----------------------------
+const swapLocations = () => {
+
+  const temp = startPlace;
+
+  setStartPlace(destinationPlace);
+
+  setDestinationPlace(temp);
+};
+
+  // -----------------------------
   // HANDLE SEARCH
   // -----------------------------
   const handleSearch = async () => {
@@ -170,7 +182,7 @@ export default function SearchBox({
         display: "flex",
         flexDirection: "column",
 
-        gap: "12px",
+        gap: "8px",
       }}
     >
 
@@ -203,7 +215,7 @@ export default function SearchBox({
         }
 
         style={{
-          padding: "12px",
+          padding: "14px",
 
           borderRadius: "12px",
 
@@ -222,6 +234,39 @@ export default function SearchBox({
           fontSize: "15px",
         }}
       />
+
+      {/* SWAP BUTTON */}
+<button
+  onClick={swapLocations}
+
+  style={{
+    width: "45px",
+
+    alignSelf: "center",
+
+    padding: "8px",
+
+    borderRadius: "50%",
+
+    border: "none",
+
+    cursor: "pointer",
+
+    background: darkMode
+      ? "rgba(255,255,255,0.08)"
+      : "#f1f1f1",
+
+    color: darkMode
+      ? "#fff"
+      : "#111",
+
+    fontSize: "18px",
+
+    fontWeight: "bold",
+  }}
+>
+  ⇅
+</button>
 
       {/* DESTINATION INPUT */}
       <input

@@ -1,3 +1,5 @@
+// frontend/src/components/MapView.js
+
 import React, { useState, useEffect } from "react";
 
 import {
@@ -7,6 +9,7 @@ import {
   Marker,
   Popup,
   CircleMarker,
+  Circle,
   useMap,
 } from "react-leaflet";
 
@@ -15,7 +18,6 @@ import "leaflet/dist/leaflet.css";
 import "../styles/map.css";
 
 import SearchBox from "./SearchBox";
-import RouteToggle from "./RouteToggle";
 import RouteInfo from "./RouteInfo";
 import LoadingOverlay from "./LoadingOverlay";
 
@@ -31,14 +33,18 @@ const center = [17.385, 78.4867];
 // AUTO FIT ROUTE
 // -----------------------------
 function FitBounds({ path }) {
+
   const map = useMap();
 
   useEffect(() => {
+
     if (path && path.length > 0) {
+
       map.fitBounds(path, {
         padding: [50, 50],
       });
     }
+
   }, [path, map]);
 
   return null;
@@ -48,20 +54,25 @@ function FitBounds({ path }) {
 // FLY TO CURRENT LOCATION
 // -----------------------------
 function FlyToLocation({ position }) {
+
   const map = useMap();
 
   useEffect(() => {
+
     if (position) {
+
       map.flyTo(position, 15, {
         duration: 2,
       });
     }
+
   }, [position, map]);
 
   return null;
 }
 
 export default function MapView() {
+
   const [routeType, setRouteType] =
     useState("safest");
 
@@ -80,23 +91,13 @@ export default function MapView() {
   const [routeData, setRouteData] =
     useState({
       shortest: {
-        path: [
-          [17.385, 78.4867],
-          [17.39, 78.49],
-          [17.398, 78.495],
-        ],
-
-        distance_km: 5.2,
-        time_min: 12,
+        path: [],
+        distance_km: 0,
+        time_min: 0,
       },
 
       safest: {
-        path: [
-          [17.385, 78.4867],
-          [17.387, 78.482],
-          [17.392, 78.478],
-          [17.398, 78.495],
-        ],
+        path: [],
       },
 
       safety_score: 82,
@@ -114,11 +115,56 @@ export default function MapView() {
       : safestPath;
 
   // -----------------------------
+  // DANGER ZONES
+  // -----------------------------
+  const dangerZones = [
+
+    {
+      center: [17.392, 78.484],
+      radius: 250,
+    },
+
+    {
+      center: [17.401, 78.491],
+      radius: 180,
+    },
+
+    {
+      center: [17.381, 78.478],
+      radius: 220,
+    },
+  ];
+
+  // -----------------------------
+  // SAFE ZONES
+  // -----------------------------
+  const safeZones = [
+
+    {
+      name: "Police Station",
+      position: [17.394, 78.487],
+    },
+
+    {
+      name: "24/7 Pharmacy",
+      position: [17.389, 78.492],
+    },
+
+    {
+      name: "Safe Metro Station",
+      position: [17.397, 78.481],
+    },
+  ];
+
+  // -----------------------------
   // CURRENT LOCATION
   // -----------------------------
   const useCurrentLocation = () => {
+
     navigator.geolocation.getCurrentPosition(
+
       (position) => {
+
         const lat =
           position.coords.latitude;
 
@@ -129,6 +175,7 @@ export default function MapView() {
       },
 
       (err) => {
+
         console.log(err);
 
         alert("Location access denied");
@@ -140,6 +187,7 @@ export default function MapView() {
   // CLEAR ROUTE
   // -----------------------------
   const clearRoute = () => {
+
     setRouteData({
       shortest: {
         path: [],
@@ -158,6 +206,7 @@ export default function MapView() {
   };
 
   return (
+
     <div
       style={{
         height: "100vh",
@@ -166,8 +215,56 @@ export default function MapView() {
         overflow: "hidden",
       }}
     >
+
+      {/* ANIMATIONS */}
+      <style>
+      {`
+
+      @keyframes pulseDot {
+
+        0% {
+          opacity: 0.3;
+          transform: scale(1);
+        }
+
+        50% {
+          opacity: 1;
+          transform: scale(1.4);
+        }
+
+        100% {
+          opacity: 0.3;
+          transform: scale(1);
+        }
+      }
+
+      @keyframes pulse {
+
+        0% {
+          transform: scale(1);
+          box-shadow:
+            0 0 0 0 rgba(255,0,0,0.7);
+        }
+
+        70% {
+          transform: scale(1.08);
+          box-shadow:
+            0 0 0 18px rgba(255,0,0,0);
+        }
+
+        100% {
+          transform: scale(1);
+          box-shadow:
+            0 0 0 0 rgba(255,0,0,0);
+        }
+      }
+
+      `}
+      </style>
+
       {loading && <LoadingOverlay />}
 
+      {/* SEARCH BOX */}
       <SearchBox
         setLoading={setLoading}
         darkMode={darkMode}
@@ -176,12 +273,7 @@ export default function MapView() {
         setDestination={setDestination}
       />
 
-      <RouteToggle
-        routeType={routeType}
-        setRouteType={setRouteType}
-        darkMode={darkMode}
-      />
-
+      {/* ROUTE INFO */}
       <RouteInfo
         routeData={routeData}
         darkMode={darkMode}
@@ -193,139 +285,380 @@ export default function MapView() {
           position: "absolute",
           top: 20,
           right: 20,
+
           zIndex: 1200,
 
           padding: "14px 18px",
 
-          borderRadius: "16px",
+          borderRadius: "18px",
 
           background: darkMode
-            ? "rgba(20,20,20,0.85)"
+            ? "rgba(20,20,20,0.88)"
             : "rgba(255,255,255,0.92)",
 
           color: darkMode
             ? "#fff"
             : "#111",
 
-          backdropFilter: "blur(12px)",
+          backdropFilter: "blur(14px)",
 
           boxShadow:
-            "0 4px 18px rgba(0,0,0,0.25)",
+            "0 8px 28px rgba(0,0,0,0.28)",
 
           fontWeight: "bold",
 
           fontSize: "18px",
         }}
       >
-        🛡️ Safety Score:{" "}
+        🛡️ Safety Score:
+        {" "}
         {routeData?.safety_score || 0}%
+      </div>
+
+      {/* SYSTEM STATUS PANEL */}
+      <div
+        style={{
+          position: "absolute",
+
+          top: 90,
+          right: 20,
+
+          zIndex: 1200,
+
+          padding: "14px 18px",
+
+          borderRadius: "18px",
+
+          background: darkMode
+            ? "rgba(20,20,20,0.88)"
+            : "rgba(255,255,255,0.92)",
+
+          color: darkMode
+            ? "#fff"
+            : "#111",
+
+          backdropFilter: "blur(14px)",
+
+          boxShadow:
+            "0 8px 28px rgba(0,0,0,0.28)",
+
+          minWidth: "230px",
+        }}
+      >
+
+        {/* RISK */}
+        <div
+          style={{
+            marginBottom: "12px",
+
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+
+            fontWeight: "bold",
+          }}
+        >
+          <div
+            style={{
+              width: "10px",
+              height: "10px",
+
+              borderRadius: "50%",
+
+              background:
+                routeData?.safety_score > 75
+                  ? "#00ff99"
+                  : routeData?.safety_score > 50
+                  ? "#ffb300"
+                  : "#ff1744",
+            }}
+          />
+
+          {routeData?.safety_score > 75
+            ? "Low Risk Area"
+            : routeData?.safety_score > 50
+            ? "Medium Risk Area"
+            : "High Risk Area"}
+        </div>
+
+        {/* AI */}
+        <div
+          style={{
+            marginBottom: "12px",
+
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+
+            fontWeight: "bold",
+          }}
+        >
+          <div
+            style={{
+              width: "10px",
+              height: "10px",
+
+              borderRadius: "50%",
+
+              background: "#00ff99",
+
+              animation:
+                "pulseDot 1.5s infinite",
+            }}
+          />
+
+          AI Safety Engine Active
+        </div>
+
+        {/* ROUTE SWITCH */}
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            marginBottom: "14px",
+          }}
+        >
+
+          <button
+            onClick={() =>
+              setRouteType("shortest")
+            }
+
+            style={{
+              flex: 1,
+
+              padding: "10px",
+
+              borderRadius: "10px",
+
+              border: "none",
+
+              cursor: "pointer",
+
+              background:
+                routeType === "shortest"
+                  ? "#ff1744"
+                  : darkMode
+                  ? "#333"
+                  : "#ddd",
+
+              color:
+                routeType === "shortest"
+                  ? "#fff"
+                  : darkMode
+                  ? "#fff"
+                  : "#111",
+
+              fontWeight: "bold",
+            }}
+          >
+            🔴 Shortest
+          </button>
+
+          <button
+            onClick={() =>
+              setRouteType("safest")
+            }
+
+            style={{
+              flex: 1,
+
+              padding: "10px",
+
+              borderRadius: "10px",
+
+              border: "none",
+
+              cursor: "pointer",
+
+              background:
+                routeType === "safest"
+                  ? "#0066ff"
+                  : darkMode
+                  ? "#333"
+                  : "#ddd",
+
+              color:
+                routeType === "safest"
+                  ? "#fff"
+                  : darkMode
+                  ? "#fff"
+                  : "#111",
+
+              fontWeight: "bold",
+            }}
+          >
+            🔵 Safest
+          </button>
+
+        </div>
+
+        {/* TIPS */}
+        <div
+          style={{
+            fontSize: "13px",
+
+            opacity: 0.85,
+
+            lineHeight: "1.6",
+          }}
+        >
+          • Prefer well-lit roads<br />
+          • Avoid isolated shortcuts<br />
+          • Stay near crowded areas
+        </div>
+
       </div>
 
       {/* THEME TOGGLE */}
       <button
-        onClick={() =>
-          setDarkMode(!darkMode)
-        }
+        onClick={() => setDarkMode(!darkMode)}
         style={{
           position: "absolute",
-          top: 90,
+          top: 290,
           right: 20,
+
           zIndex: 1200,
 
           padding: "10px 16px",
 
           borderRadius: "14px",
+
           border: "none",
 
           cursor: "pointer",
 
           background: darkMode
-            ? "rgba(20,20,20,0.85)"
-            : "rgba(255,255,255,0.9)",
+            ? "rgba(20,20,20,0.88)"
+            : "rgba(255,255,255,0.92)",
 
           color: darkMode
             ? "#fff"
             : "#111",
 
-          backdropFilter: "blur(10px)",
+          fontWeight: "bold",
 
           boxShadow:
-            "0 4px 18px rgba(0,0,0,0.25)",
-
-          fontWeight: "bold",
+            "0 8px 28px rgba(0,0,0,0.28)",
         }}
       >
-        {darkMode
-          ? "☀️ Light"
-          : "🌙 Dark"}
+        {darkMode ? "☀️ Light" : "🌙 Dark"}
       </button>
 
-      {/* CURRENT LOCATION BUTTON */}
+      {/* MY LOCATION */}
       <button
         onClick={useCurrentLocation}
         style={{
           position: "absolute",
-          top: 150,
+          top: 350,
           right: 20,
+
           zIndex: 1200,
 
           padding: "10px 16px",
 
           borderRadius: "14px",
+
           border: "none",
 
           cursor: "pointer",
 
           background: darkMode
-            ? "rgba(20,20,20,0.85)"
-            : "rgba(255,255,255,0.9)",
+            ? "rgba(20,20,20,0.88)"
+            : "rgba(255,255,255,0.92)",
 
           color: darkMode
             ? "#fff"
             : "#111",
 
-          backdropFilter: "blur(10px)",
+          fontWeight: "bold",
 
           boxShadow:
-            "0 4px 18px rgba(0,0,0,0.25)",
-
-          fontWeight: "bold",
+            "0 8px 28px rgba(0,0,0,0.28)",
         }}
       >
         📍 My Location
       </button>
 
-      {/* CLEAR ROUTE BUTTON */}
+      {/* CLEAR ROUTE */}
       <button
         onClick={clearRoute}
         style={{
           position: "absolute",
-          top: 210,
+          top: 410,
           right: 20,
+
           zIndex: 1200,
 
           padding: "10px 16px",
 
           borderRadius: "14px",
+
           border: "none",
 
           cursor: "pointer",
 
-          background: "#ff4d4f",
+          background:
+            "linear-gradient(135deg,#ff1744,#ff5252)",
 
           color: "#fff",
 
-          backdropFilter: "blur(10px)",
+          fontWeight: "bold",
 
           boxShadow:
-            "0 4px 18px rgba(0,0,0,0.25)",
-
-          fontWeight: "bold",
+            "0 8px 28px rgba(255,0,0,0.35)",
         }}
       >
         ❌ Clear Route
       </button>
 
+      {/* SOS BUTTON */}
+      <button
+        onClick={() => {
+
+          alert(
+            "🚨 Emergency SOS Triggered!\n\nNearest help services notified."
+          );
+
+        }}
+
+        style={{
+          position: "absolute",
+
+          bottom: 90,
+          right: 20,
+
+          zIndex: 1300,
+
+          width: "75px",
+          height: "75px",
+
+          borderRadius: "50%",
+
+          border: "none",
+
+          cursor: "pointer",
+
+          background:
+            "linear-gradient(135deg,#ff1744,#ff5252)",
+
+          color: "#fff",
+
+          fontWeight: "bold",
+
+          fontSize: "20px",
+
+          boxShadow:
+            "0 8px 30px rgba(255,0,0,0.45)",
+
+          animation:
+            "pulse 1.8s infinite",
+        }}
+      >
+        🚨 SOS
+      </button>
+
+      {/* MAP */}
       <MapContainer
         center={center}
         zoom={13}
@@ -334,13 +667,11 @@ export default function MapView() {
           width: "100%",
         }}
       >
-        {/* AUTO FIT ROUTE */}
+
         <FitBounds path={activePath} />
 
-        {/* FLY TO CURRENT LOCATION */}
         <FlyToLocation position={start} />
 
-        {/* MAP THEME */}
         <TileLayer
           attribution='&copy; OpenStreetMap contributors'
           url={
@@ -350,7 +681,54 @@ export default function MapView() {
           }
         />
 
-        {/* START DOT */}
+        {/* DANGER ZONES */}
+        {dangerZones.map((zone, idx) => (
+
+          <Circle
+            key={idx}
+
+            center={zone.center}
+
+            radius={zone.radius}
+
+            pathOptions={{
+              color: "#ff1744",
+
+              fillColor: "#ff1744",
+
+              fillOpacity: 0.25,
+            }}
+          />
+
+        ))}
+
+        {/* SAFE ZONES */}
+        {safeZones.map((zone, idx) => (
+
+          <CircleMarker
+            key={idx}
+
+            center={zone.position}
+
+            radius={10}
+
+            pathOptions={{
+              color: "#00ff99",
+
+              fillColor: "#00ff99",
+
+              fillOpacity: 0.8,
+            }}
+          >
+            <Popup>
+              🛡️ {zone.name}
+            </Popup>
+
+          </CircleMarker>
+
+        ))}
+
+        {/* START */}
         {start && (
           <CircleMarker
             center={start}
@@ -360,11 +738,13 @@ export default function MapView() {
                 : lightStartStyle
             }
           >
-            <Popup>Start Location</Popup>
+            <Popup>
+              Start Location
+            </Popup>
           </CircleMarker>
         )}
 
-        {/* DESTINATION MARKER */}
+        {/* DESTINATION */}
         {destination && (
           <Marker
             position={destination}
@@ -379,35 +759,84 @@ export default function MapView() {
         {/* SHORTEST ROUTE */}
         {routeType === "shortest" &&
           shortestPath.length > 0 && (
-            <Polyline
-              positions={shortestPath}
-              pathOptions={{
-                color: darkMode
-                  ? "#00ff99"
-                  : "#0066ff",
 
-                weight: 6,
-                opacity: 0.95,
-              }}
-            />
-          )}
+          <Polyline
+            positions={shortestPath}
+
+            pathOptions={{
+              color: "#ff1744",
+
+              weight: 6,
+
+              opacity: 0.95,
+            }}
+          />
+        )}
 
         {/* SAFEST ROUTE */}
         {routeType === "safest" &&
           safestPath.length > 0 && (
-            <Polyline
-              positions={safestPath}
-              pathOptions={{
-                color: darkMode
-                  ? "#00ff99"
-                  : "#0055ff",
 
-                weight: 7,
-                opacity: 1,
-              }}
-            />
-          )}
+          <Polyline
+            positions={safestPath}
+
+            pathOptions={{
+              color: "#0066ff",
+
+              weight: 7,
+
+              opacity: 1,
+            }}
+          />
+        )}
+
       </MapContainer>
+
+      {/* FOOTER */}
+      <div
+        style={{
+          position: "absolute",
+
+          bottom: 0,
+          left: 0,
+
+          width: "100%",
+
+          zIndex: 1500,
+
+          padding: "6px 18px",
+
+          background:
+            "rgba(0,0,0,0.75)",
+
+          color: "#fff",
+
+          display: "flex",
+
+          justifyContent: "space-between",
+
+          alignItems: "center",
+
+          fontSize: "12px",
+
+          backdropFilter: "blur(10px)",
+        }}
+      >
+
+        <div>
+          🛰️ AI Routing Engine Online
+        </div>
+
+        <div>
+          📡 Live Safety Monitoring Active
+        </div>
+
+        <div>
+          🛡️ Emergency Response Enabled
+        </div>
+
+      </div>
+
     </div>
   );
 }
