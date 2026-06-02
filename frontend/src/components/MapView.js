@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-// frontend/src/components/MapView.js
 
 import React, { useState, useEffect } from "react";
 
@@ -219,7 +217,7 @@ export default function MapView() {
 
       {/* ANIMATIONS */}
       <style>
-      {`
+        {`
 
       @keyframes pulseDot {
 
@@ -345,113 +343,6 @@ export default function MapView() {
 
           minWidth: "230px",
         }}
-=======
-import React, { useState } from "react";
-import { MapContainer, TileLayer, Polyline, Marker } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-
-import { searchLocation, getRoute } from "../services/api";
-
-const MapView = () => {
-  const [startInput, setStartInput] = useState("");
-  const [endInput, setEndInput] = useState("");
-  const [route, setRoute] = useState(null);
-
-  const handleSearch = async () => {
-    try {
-      const start = await searchLocation(startInput);
-      const end = await searchLocation(endInput);
-
-      if (!start || !end) {
-        alert("Invalid locations");
-        return;
-      }
-
-      const routeData = await getRoute(start, end);
-      console.log("ROUTE DATA:", routeData);
-
-      setRoute(routeData);
-    } catch (err) {
-      console.error(err);
-      alert("Error fetching route");
-    }
-  };
-
-  return (
-    <div style={{ height: "100vh", width: "100%" }}>
-      {/* 🔍 SEARCH BOX */}
-      <div
-        style={{
-          position: "absolute",
-          top: "20px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          background: "white",
-          padding: "15px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-          zIndex: 1000,
-          width: "320px",
-        }}
-      >
-        <input
-          type="text"
-          placeholder="Start location"
-          value={startInput}
-          onChange={(e) => setStartInput(e.target.value)}
-          style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
-        />
-
-        <input
-          type="text"
-          placeholder="Destination"
-          value={endInput}
-          onChange={(e) => setEndInput(e.target.value)}
-          style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
-        />
-
-        <button
-          onClick={handleSearch}
-          style={{
-            width: "100%",
-            padding: "10px",
-            background: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-          }}
-        >
-          Search Route
-        </button>
-      </div>
-
-      {/* 📊 ROUTE INFO */}
-      {route && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "20px",
-            left: "20px",
-            background: "white",
-            padding: "12px",
-            borderRadius: "10px",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-            zIndex: 1000,
-          }}
-        >
-          <h4>Route Info</h4>
-          <p>📏 {route.shortest.distance_km.toFixed(2)} km</p>
-          <p>⏱️ {route.shortest.time_min.toFixed(1)} mins</p>
-        </div>
-      )}
-
-      {/* 🗺️ MAP */}
-      <MapContainer
-        center={[17.385, 78.4867]} // Hyderabad default
-        zoom={13}
-        style={{ height: "100%", width: "100%" }}
->>>>>>> origin/praneeth
       >
 
         {/* RISK */}
@@ -477,16 +368,16 @@ const MapView = () => {
                 routeData?.safety_score > 75
                   ? "#00ff99"
                   : routeData?.safety_score > 50
-                  ? "#ffb300"
-                  : "#ff1744",
+                    ? "#ffb300"
+                    : "#ff1744",
             }}
           />
 
           {routeData?.safety_score > 75
             ? "Low Risk Area"
             : routeData?.safety_score > 50
-            ? "Medium Risk Area"
-            : "High Risk Area"}
+              ? "Medium Risk Area"
+              : "High Risk Area"}
         </div>
 
         {/* AI */}
@@ -547,15 +438,15 @@ const MapView = () => {
                 routeType === "shortest"
                   ? "#ff1744"
                   : darkMode
-                  ? "#333"
-                  : "#ddd",
+                    ? "#333"
+                    : "#ddd",
 
               color:
                 routeType === "shortest"
                   ? "#fff"
                   : darkMode
-                  ? "#fff"
-                  : "#111",
+                    ? "#fff"
+                    : "#111",
 
               fontWeight: "bold",
             }}
@@ -583,15 +474,15 @@ const MapView = () => {
                 routeType === "safest"
                   ? "#0066ff"
                   : darkMode
-                  ? "#333"
-                  : "#ddd",
+                    ? "#333"
+                    : "#ddd",
 
               color:
                 routeType === "safest"
                   ? "#fff"
                   : darkMode
-                  ? "#fff"
-                  : "#111",
+                    ? "#fff"
+                    : "#111",
 
               fontWeight: "bold",
             }}
@@ -789,7 +680,6 @@ const MapView = () => {
           }
         />
 
-<<<<<<< HEAD
         {/* DANGER ZONES */}
         {dangerZones.map((zone, idx) => (
 
@@ -863,55 +753,41 @@ const MapView = () => {
               Destination
             </Popup>
           </Marker>
-=======
-        {/* 🔵 Shortest Path */}
-        {route && route.shortest?.path && (
-          <>
-            <Polyline positions={route.shortest.path} color="blue" weight={5} />
-            <Marker position={route.shortest.path[0]} />
-            <Marker position={route.shortest.path.at(-1)} />
-          </>
-        )}
-
-        {/* 🟢 Safest Path */}
-        {route && route.safest?.path && (
-          <Polyline positions={route.safest.path} color="green" weight={5} />
->>>>>>> origin/praneeth
         )}
 
         {/* SHORTEST ROUTE */}
         {routeType === "shortest" &&
           shortestPath.length > 0 && (
 
-          <Polyline
-            positions={shortestPath}
+            <Polyline
+              positions={shortestPath}
 
-            pathOptions={{
-              color: "#ff1744",
+              pathOptions={{
+                color: "#ff1744",
 
-              weight: 6,
+                weight: 6,
 
-              opacity: 0.95,
-            }}
-          />
-        )}
+                opacity: 0.95,
+              }}
+            />
+          )}
 
         {/* SAFEST ROUTE */}
         {routeType === "safest" &&
           safestPath.length > 0 && (
 
-          <Polyline
-            positions={safestPath}
+            <Polyline
+              positions={safestPath}
 
-            pathOptions={{
-              color: "#0066ff",
+              pathOptions={{
+                color: "#0066ff",
 
-              weight: 7,
+                weight: 7,
 
-              opacity: 1,
-            }}
-          />
-        )}
+                opacity: 1,
+              }}
+            />
+          )}
 
       </MapContainer>
 
