@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException
   #  shortest_path,
    # safest_path,
 #)
-from app.services.rl_service import get_safest_path
+#from app.services.rl_service import get_safest_path
 
 router = APIRouter()
 
