@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class DQN(nn.Module):
-    def __init__(self, input_dim=4, output_dim=10):
+    def __init__(self, input_dim=6, output_dim=10):
         """
         input_dim = 4
         [current_lat, current_lon, target_lat, target_lon]
@@ -45,7 +45,9 @@ if __name__ == "__main__":
         17.3822014,   # current lat
         78.4933794,   # current lon
         17.4287668,   # target lat
-        78.4554611    # target lon
+        78.4554611,    # target lon
+        17.4287668 - 17.3822014,   # dy
+        78.4554611 - 78.4933794    # dx
     ])
 
     output = model(sample_state)

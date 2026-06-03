@@ -12,7 +12,7 @@ class RLRouter:
         with open("app/data/processed_graph.pkl", "rb") as f:
             self.G = pickle.load(f)
 
-        self.model = DQN(input_dim=4, output_dim=10)
+        self.model = DQN(input_dim=6, output_dim=10)
 
         self.model.load_state_dict(
             torch.load(
@@ -27,15 +27,25 @@ class RLRouter:
         c = self.G.nodes[current]
         t = self.G.nodes[target]
 
+        dy = t["y"] - c["y"]
+        dx = t["x"] - c["x"]
+
         return np.array([
             c["y"],
             c["x"],
             t["y"],
-            t["x"]
+            t["x"],
+            dy,
+            dx
         ], dtype=np.float32)
 
-    def choose_next(self, current, target):
-        neighbors = list(self.G.neighbors(current))
+
+    def choose_next(self, current, target, visited):
+
+        neighbors = [
+            n for n in self.G.neighbors(current)
+            if n not in visited
+        ]
 
         if not neighbors:
             return None
@@ -53,13 +63,15 @@ class RLRouter:
 
         return neighbors[best_idx]
 
+
     def generate_route(
         self,
         start,
         target,
-        max_steps=100
+        max_steps=500
     ):
         print("=== NEW RL ROUTER LOADED ===")
+
         route = [start]
         current = start
 
@@ -68,17 +80,16 @@ class RLRouter:
         for _ in range(max_steps):
 
             if current == target:
-                break
+                print("Destination reached by RL")
+                return route
 
             nxt = self.choose_next(
                 current,
-                target
+                target,
+                visited
             )
 
             if nxt is None:
-                break
-
-            if nxt in visited:
                 break
 
             route.append(nxt)
@@ -86,51 +97,24 @@ class RLRouter:
             visited.add(nxt)
             current = nxt
 
-        print("Safest path nodes:", len(route))
-        print("Destination reached:", current == target)
-
-        if current != target:
-            print("ENTERING FALLBACK")
-
-            try:
-                remaining = nx.shortest_path(
-                    self.G,
-                    current,
-                    target,
-                    weight="length"
-                )
-
-                print(
-                    "Fallback added:",
-                    len(remaining),
-                    "nodes"
-                )
-
-                route.extend(remaining[1:])
-
-            except Exception as e:
-                print("FALLBACK ERROR:", str(e))
-
-        print("Final route nodes:", len(route))
-
-
+        print("RL failed before destination")
         print("Current node:", current)
         print("Target node:", target)
 
-        if current != target:
+        try:
             print("ENTERING FALLBACK")
 
-            try:
-                from app.services.routing import shortest_path
+            remaining = nx.shortest_path(
+                self.G,
+                current,
+                target,
+                weight="length"
+            )
 
-                remaining = shortest_path(current, target)
+            if len(remaining) > 1:
+                route.extend(remaining[1:])
 
-                print("Remaining path:", len(remaining))
-
-                if remaining and len(remaining) > 1:
-                    route.extend(remaining[1:])
-
-            except Exception as e:
-                print("Fallback failed:", e)
+        except Exception as e:
+            print("FALLBACK ERROR:", str(e))
 
         return route

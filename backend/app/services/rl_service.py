@@ -24,7 +24,7 @@ with open(GRAPH_PATH, "rb") as f:
 env = GraphEnv(G)
 
 model = DQN(
-    input_dim=4,
+    input_dim=6,
     output_dim=10
 )
 

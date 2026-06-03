@@ -26,7 +26,7 @@ print("Graph loaded successfully")
 # Initialize environment + model
 # -----------------------------
 env = GraphEnv(G)
-model = DQN(input_dim=4, output_dim=10)
+model = DQN(input_dim=6, output_dim=10)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
@@ -96,8 +96,12 @@ for episode in range(episodes):
 
         with torch.no_grad():
             next_q_values = model(next_tensor)
-            target_q = reward if done else reward + gamma * torch.max(next_q_values)
-
+            target_q = (
+                    torch.tensor(reward, dtype=torch.float32)
+                    if done
+                    else reward + gamma * torch.max(next_q_values)
+                )
+            
         loss = F.mse_loss(current_q, target_q)
 
         optimizer.zero_grad()
