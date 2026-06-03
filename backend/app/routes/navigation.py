@@ -1,3 +1,4 @@
+print("NAVIGATION.PY IMPORTED")
 from fastapi import APIRouter, HTTPException
 import osmnx as ox
 from app.services.rl_service import get_safest_path

@@ -1,3 +1,4 @@
+print("RL_SERVICE IMPORT START")
 import os
 import pickle
 import torch
@@ -21,10 +22,12 @@ GRAPH_PATH = os.path.abspath(
 
 print("2. Loading graph from:", GRAPH_PATH)
 
+print("Loading graph...")
 with open(GRAPH_PATH, "rb") as f:
     G = pickle.load(f)
 
-print("3. Graph loaded successfully")
+print("Graph loaded")
+
 print("Nodes:", len(G.nodes))
 print("Edges:", len(G.edges))
 
@@ -49,7 +52,7 @@ MODEL_PATH = os.path.abspath(
     )
 )
 
-print("6. Loading model from:", MODEL_PATH)
+print("Loading model...")
 
 model.load_state_dict(
     torch.load(
@@ -57,6 +60,7 @@ model.load_state_dict(
         map_location="cpu"
     )
 )
+print("Model loaded")
 
 print("7. Model weights loaded")
 

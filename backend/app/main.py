@@ -1,13 +1,16 @@
-print("MAIN.PY STARTED")
 
+print("MAIN 1")
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routes.navigation import router as navigation_router
+print("MAIN 2")
 from app.routes.search import router as search_router
+print("MAIN 3")
 
 print("IMPORTS COMPLETE")
 app = FastAPI()
+print("MAIN 4")
 
 app.add_middleware(
     CORSMiddleware,
