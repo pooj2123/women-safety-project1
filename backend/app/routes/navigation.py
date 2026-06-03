@@ -11,9 +11,22 @@ from fastapi import APIRouter, HTTPException
 router = APIRouter()
 
 @router.post("/route")
-@router.post("/route")
 def get_route(data: dict):
-    return {"status": "ok"}
+    return {
+        "shortest": {
+            "path": [
+                [17.385, 78.486],
+                [17.390, 78.490]
+            ]
+        },
+        "safest": {
+            "path": [
+                [17.385, 78.486],
+                [17.388, 78.488],
+                [17.390, 78.490]
+            ]
+        }
+    }
 
 # def get_route(data: dict):
 #     try:
