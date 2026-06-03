@@ -112,7 +112,7 @@ const swapLocations = () => {
       // BACKEND API
       // -----------------------------
       const response = await axios.post(
-  "http://127.0.0.1:8000/api/navigation/route",
+  "https://women-safety-project1.onrender.com",
   {
     start_lat: startCoords[0],
     start_lon: startCoords[1],

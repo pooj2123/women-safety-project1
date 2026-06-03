@@ -1,4 +1,4 @@
-const BASE_URL = "http://127.0.0.1:8000";
+const BASE_URL = "https://women-safety-project1.onrender.com";
 
 export const searchLocation = async (query) => {
   try {
