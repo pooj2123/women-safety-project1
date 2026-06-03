@@ -55,3 +55,24 @@ try:
 except Exception as e:
     print("GRAPH LOAD ERROR:", str(e))
     raise
+
+def shortest_path(source, target):
+    return nx.shortest_path(
+        G,
+        source,
+        target,
+        weight="length"
+    )
+
+def safest_path(source, target):
+    def cost(u, v, data):
+        distance = data.get("length", 1)
+        safety = data.get("safety_score", 0.5)
+        return distance + (1 - safety) * 100
+
+    return nx.shortest_path(
+        G,
+        source,
+        target,
+        weight=cost
+    )
